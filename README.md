@@ -1,2 +1,2 @@
 # Pelicoon-Messenger
-A simple messenger application
+pelicoon messenger is a simple lightweight messenger app

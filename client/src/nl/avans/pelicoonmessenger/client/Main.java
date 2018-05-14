@@ -1,9 +1,12 @@
 package nl.avans.pelicoonmessenger.client;
 
+import nl.avans.pelicoonmessenger.base.BaseApplication;
+import nl.avans.pelicoonmessenger.client.view.ClientApplication;
+
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Client started!");
+        BaseApplication.launch(ClientApplication.class, args);
     }
 
 }

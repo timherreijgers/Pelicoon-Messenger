@@ -25,18 +25,22 @@ public class Session implements Serializable {
         return user;
     }
 
+    @Override
+    public String toString() {
+        return "Session{" +
+                "id=" + id +
+                ", ip='" + ip + '\'' +
+                ", user=" + user +
+                '}';
+    }
+
     public static class Builder {
         int id;
         String ip;
         User user;
 
         public Builder() {
-
-        }
-
-        public Builder id(int id) {
-            this.id = id;
-            return this;
+            id = (int) Math.round(Math.random() * 10000);
         }
 
         public Builder ip(String ip) {

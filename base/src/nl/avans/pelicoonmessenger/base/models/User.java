@@ -19,17 +19,20 @@ public class User implements Serializable {
         return username;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                '}';
+    }
+
     public static class Builder {
         int id;
         String username;
 
         public Builder() {
-
-        }
-
-        public Builder id(int id) {
-            this.id = id;
-            return this;
+            id = (int) Math.round(Math.random() * 10000);
         }
 
         public Builder username(String username) {

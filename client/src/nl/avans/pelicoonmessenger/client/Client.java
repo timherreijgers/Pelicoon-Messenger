@@ -5,6 +5,7 @@ import nl.avans.pelicoonmessenger.base.models.Session;
 import nl.avans.pelicoonmessenger.base.models.User;
 import nl.avans.pelicoonmessenger.base.utils.ArrayUtilities;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -42,23 +43,27 @@ public class Client extends Thread {
             Session session = (Session) in.readObject();
             System.out.println("Session: " + session.toString());
 
-            while (socket.isConnected()) {
-                try {
+            try {
+                while (socket.isConnected()) {
                     Object object = in.readObject();
 
-                    if(object instanceof Message) {
+                    if (object instanceof Message) {
                         System.out.println(object.toString());
                         messages.add((Message) object);
                     }
 
-                    if(object instanceof Message[]) {
-                        messages.addAll(Arrays.asList((Message[])object));
+                    if (object instanceof Message[]) {
+                        messages.addAll(Arrays.asList((Message[]) object));
                         System.out.println("Received a message history with, our history now contains " + messages.size() + " messages.");
-                        System.out.println(Arrays.asList((Message[])object));
+                        System.out.println(Arrays.asList((Message[]) object));
                     }
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
                 }
+            } catch (EOFException e) {
+                e.printStackTrace();
+            } finally {
+                out.close();
+                in.close();
+                socket.close();
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

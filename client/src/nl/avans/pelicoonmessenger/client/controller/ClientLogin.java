@@ -5,7 +5,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import nl.avans.pelicoonmessenger.client.view.ClientApplication;
 
-public class ClientLogin {
+import java.util.ListResourceBundle;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+public class ClientLogin implements Controller{
 
     @FXML
     private TextField ipTextField;
@@ -28,11 +32,11 @@ public class ClientLogin {
         if(!isEmpty) {
             System.out.println("ip: " + ipTextField.getText() + ", username: " + usernameTextField.getText());
             try {
-                ClientApplication.getInstance().loadLayout("layouts/client_login.fxml", "login2", 1000, 1000);
+                ClientApplication.getInstance().loadLayout("layouts/client_chat.fxml", "login2", 1000,
+                        1000, new ClientChat(ipTextField.getText(), usernameTextField.getText()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
-
 }

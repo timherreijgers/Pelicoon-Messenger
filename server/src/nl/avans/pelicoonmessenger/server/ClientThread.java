@@ -6,8 +6,6 @@ import nl.avans.pelicoonmessenger.base.models.User;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +15,9 @@ public class ClientThread extends Thread {
     private ObjectOutputStream out;
     private ObjectInputStream in;
 
-    private List<OnMessageReceivedListener> messageListeners = new ArrayList<>();
+    private List<ClientListener> listeners = new ArrayList<>();
+
+    private Session session;
 
     public ClientThread(Socket socket) {
         this.socket = socket;
@@ -39,32 +39,34 @@ public class ClientThread extends Thread {
             }
 
             System.out.println("[CLIENTTHREAD/" + getId() + "]: Welcoming " + ((User) user).getUsername() + " by sending the session");
-            Session session = new Session.Builder()
+            session = new Session.Builder()
                     .user((User) user)
                     .ip(socket.getInetAddress().getHostAddress())
                     .build();
             out.writeObject(session);
+            for(ClientListener listener : listeners) {
+                listener.onAuthenticated(this);
+            }
 
             System.out.println("[CLIENTTHREAD/" + getId() + "]: Client thread initialized, waiting for messages...");
 
-            System.out.println(socket.getRemoteSocketAddress());
-
-            while (!socket.isClosed()) {
-                try {
-
-                    // TODO: Fix this... it's not checking correctly!
-                    if(in.read() == -1) {
-                        System.err.println("[CLIENTTHREAD/" + getId() + "]: Read -1!! Are we still connected???");
-                    }
-
+            try {
+                while (socket.isConnected()) {
                     Object object = in.readObject();
                     if (object instanceof Message) {
-                        for (OnMessageReceivedListener listener : messageListeners) {
-                            listener.onMessageReceived((Message) object);
+                        for (ClientListener listener : listeners) {
+                            listener.onMessageReceived(this, (Message) object);
                         }
                     }
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
+                }
+            } catch(EOFException e) {
+                e.printStackTrace();
+            } finally {
+                out.close();
+                in.close();
+                socket.close();
+                for(ClientListener listener : listeners) {
+                    listener.onDisconnected(this);
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -72,15 +74,31 @@ public class ClientThread extends Thread {
         }
     }
 
-    public void addOnMessageReceivedListener(OnMessageReceivedListener listener) {
-        messageListeners.add(listener);
+    public void addClientListener(ClientListener listener) {
+        listeners.add(listener);
     }
 
     public void sendMessage(Message message) throws IOException {
         out.writeObject(message);
     }
 
-    public interface OnMessageReceivedListener {
-        void onMessageReceived(Message message);
+    public void sendMessages(List<Message> messages) throws IOException {
+        out.writeObject(messages.toArray(new Message[0]));
+    }
+
+    public boolean isAuthenticated() {
+        return session != null;
+    }
+
+    public Session getAuthenticatedSession() {
+        return session;
+    }
+
+    public interface ClientListener {
+        void onAuthenticated(ClientThread client);
+
+        void onMessageReceived(ClientThread client, Message message);
+
+        void onDisconnected(ClientThread client);
     }
 }

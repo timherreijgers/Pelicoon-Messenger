@@ -7,7 +7,7 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Server implements ClientThread.OnMessageReceivedListener {
+public class Server implements ClientThread.ClientListener {
 
     private static Server instance;
 
@@ -20,6 +20,7 @@ public class Server implements ClientThread.OnMessageReceivedListener {
     private ServerSocket serverSocket;
 
     private List<ClientThread> clients = new ArrayList<>();
+    private List<Message> messages = new ArrayList<>();
 
     private Server() {
 
@@ -38,7 +39,7 @@ public class Server implements ClientThread.OnMessageReceivedListener {
 
             while (running) {
                 ClientThread clientThread = new ClientThread(serverSocket.accept());
-                clientThread.addOnMessageReceivedListener(this);
+                clientThread.addClientListener(this);
                 clientThread.start();
                 clients.add(clientThread);
                 System.out.println("[SERVER]: New client connected");
@@ -61,16 +62,34 @@ public class Server implements ClientThread.OnMessageReceivedListener {
     }
 
     @Override
-    public void onMessageReceived(Message message) {
+    public void onAuthenticated(ClientThread client) {
+        System.out.println("[SERVER]: Client authenticated, sending message history");
+        try {
+            client.sendMessages(messages);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onMessageReceived(ClientThread client, Message message) {
         System.out.println("[SERVER]: Received message " + message.toString());
 
-        // Wups we need to exclude the client it was send from...
-        for(ClientThread client : clients) {
-            try {
-                client.sendMessage(message);
-            } catch (IOException e) {
-                e.printStackTrace();
+        try {
+            if (client.isAuthenticated()) {
+                messages.add(message);
+                for (ClientThread subClient : clients) {
+                    subClient.sendMessage(message);
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onDisconnected(ClientThread client) {
+        clients.remove(client);
+        System.out.println("[SERVER]: Client disconnected, total connected clients: " + clients.size());
     }
 }

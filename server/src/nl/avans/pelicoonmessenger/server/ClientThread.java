@@ -1,5 +1,6 @@
 package nl.avans.pelicoonmessenger.server;
 
+import nl.avans.pelicoonmessenger.base.logging.Logger;
 import nl.avans.pelicoonmessenger.base.models.Message;
 import nl.avans.pelicoonmessenger.base.models.Session;
 import nl.avans.pelicoonmessenger.base.models.User;
@@ -11,6 +12,8 @@ import java.util.List;
 
 public class ClientThread extends Thread {
 
+    private Logger logger = new Logger("ClientThread");
+
     private Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
@@ -21,24 +24,26 @@ public class ClientThread extends Thread {
 
     public ClientThread(Socket socket) {
         this.socket = socket;
+        setName("Client Thread-" + getId());
     }
 
     @Override
     public void run() {
         try {
-            System.out.println("[CLIENTTHREAD/" + getId() + "]: Initializing client thread.");
+            System.out.println(Thread.currentThread().getName());
+            logger.info("Initializing client thread.");
 
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
-            System.out.println("[CLIENTTHREAD/" + getId() + "]: Waiting for user information");
+            logger.info("Waiting for user information");
             Object user = in.readObject();
             if (!(user instanceof User)) {
-                System.out.println("[CLIENTTHREAD/" + getId() + "]: Client did not authenticate correctly!");
+                logger.info("Client did not authenticate correctly!");
                 socket.close();
             }
 
-            System.out.println("[CLIENTTHREAD/" + getId() + "]: Welcoming " + ((User) user).getUsername() + " by sending the session");
+            logger.info("Welcoming " + ((User) user).getUsername() + " by sending the session");
             session = new Session.Builder()
                     .user((User) user)
                     .ip(socket.getInetAddress().getHostAddress())
@@ -48,7 +53,7 @@ public class ClientThread extends Thread {
                 listener.onAuthenticated(this);
             }
 
-            System.out.println("[CLIENTTHREAD/" + getId() + "]: Client thread initialized, waiting for messages...");
+            logger.info("Client thread initialized, waiting for messages...");
 
             try {
                 while (socket.isConnected()) {

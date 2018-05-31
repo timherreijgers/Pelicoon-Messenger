@@ -1,8 +1,9 @@
 package nl.avans.pelicoonmessenger.base.models;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Message {
+public class Message implements Serializable {
     private int id;
     private LocalDateTime timestamp;
     private User user;
@@ -31,6 +32,16 @@ public class Message {
         return message;
     }
 
+    @Override
+    public String toString() {
+        return "Message{" +
+                "id=" + id +
+                ", timestamp=" + timestamp +
+                ", user=" + user +
+                ", message='" + message + '\'' +
+                '}';
+    }
+
     public static class Builder {
         int id;
         LocalDateTime timestamp;
@@ -46,14 +57,13 @@ public class Message {
             return this;
         }
 
-        public Builder timestamp() {
-            this.timestamp = LocalDateTime.now();
-            return this;
-        }
-
         public Builder timestamp(LocalDateTime timestamp) {
             this.timestamp = timestamp;
             return this;
+        }
+
+        public Builder timestamp() {
+            return timestamp(LocalDateTime.now());
         }
 
         public Builder user(User user) {

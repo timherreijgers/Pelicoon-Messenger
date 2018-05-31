@@ -2,14 +2,13 @@ package nl.avans.pelicoonmessenger.server;
 
 import nl.avans.pelicoonmessenger.base.logging.Logger;
 import nl.avans.pelicoonmessenger.base.models.Message;
-import nl.avans.pelicoonmessenger.server.controllers.ServerConsole;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Server extends Thread implements ClientThread.ClientListener {
+public class Server implements ClientThread.ClientListener {
 
     private static Server instance;
 
@@ -21,51 +20,56 @@ public class Server extends Thread implements ClientThread.ClientListener {
     private Logger logger = new Logger("Server");
 
     private boolean running = false;
+    private Thread serverThread;
     private ServerSocket serverSocket;
 
     private List<ClientThread> clients = new ArrayList<>();
     private List<Message> messages = new ArrayList<>();
 
     private Server() {
-        setName("Server Thread");
+
     }
 
-    @Override
-    public void run() {
-        logger.info("Initializing server...");
+    public void start() {
+        running = true;
 
-        try {
-            serverSocket = new ServerSocket(1337);
-            running = true;
+        serverThread = new Thread(() -> {
+            logger.info("Initializing server...");
 
-            logger.info("Server is listening for clients at port " + serverSocket.getLocalPort());
+            try {
+                serverSocket = new ServerSocket(1337);
+                running = true;
 
-            while (running) {
-                ClientThread clientThread = new ClientThread(serverSocket.accept());
-                clientThread.addClientListener(this);
-                clientThread.start();
-                clients.add(clientThread);
-                logger.info("New client connected");
+                logger.info("Server is listening for clients at port " + serverSocket.getLocalPort());
+
+                while (running) {
+                    ClientThread clientThread = new ClientThread(serverSocket.accept());
+                    clientThread.addClientListener(this);
+                    clientThread.start();
+                    clients.add(clientThread);
+                    logger.info("New client connected");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        });
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+        serverThread.setName("Server Thread");
+        serverThread.start();
+    }
 
+    public void stop() {
+        if(running) {
+            try {
+                running = false;
+                serverSocket.close();
+                serverThread.interrupt();
+                logger.info("Server closed");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
-
-//    public void stop() {
-//        if(serverSocket != null && !serverSocket.isClosed()) {
-//            try {
-//                running = false;
-//                serverSocket.close();
-//                serverSocket = null;
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 
     @Override
     public void onAuthenticated(ClientThread client) {

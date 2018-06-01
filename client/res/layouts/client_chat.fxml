@@ -24,7 +24,7 @@
                 <TextArea fx:id="mainTextArea" editable="false"/>
             </center>
             <bottom>
-                <TextField fx:id="mainMessageArea" />
+                <TextField fx:id="mainMessageArea"/>
             </bottom>
         </BorderPane>
     </center>

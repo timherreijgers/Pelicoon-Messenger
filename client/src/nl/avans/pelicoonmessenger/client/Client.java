@@ -3,7 +3,6 @@ package nl.avans.pelicoonmessenger.client;
 import nl.avans.pelicoonmessenger.base.models.Message;
 import nl.avans.pelicoonmessenger.base.models.Session;
 import nl.avans.pelicoonmessenger.base.models.User;
-import nl.avans.pelicoonmessenger.base.utils.ArrayUtilities;
 
 import java.io.EOFException;
 import java.io.IOException;

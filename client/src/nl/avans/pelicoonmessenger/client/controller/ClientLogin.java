@@ -32,8 +32,8 @@ public class ClientLogin implements Controller{
         if(!isEmpty) {
             System.out.println("ip: " + ipTextField.getText() + ", username: " + usernameTextField.getText());
             try {
-                ClientApplication.getInstance().loadLayout("layouts/client_chat.fxml", "login2", 1000,
-                        1000, new ClientChat(ipTextField.getText(), usernameTextField.getText()));
+                ClientApplication.getInstance().loadLayout("layouts/client_chat.fxml", "Chat", 1280,
+                        720, new ClientChat(ipTextField.getText(), usernameTextField.getText()));
             } catch (Exception e) {
                 e.printStackTrace();
             }

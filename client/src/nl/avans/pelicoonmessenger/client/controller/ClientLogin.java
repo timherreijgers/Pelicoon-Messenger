@@ -39,4 +39,9 @@ public class ClientLogin implements Controller{
             }
         }
     }
+
+    @Override
+    public void onClose() {
+
+    }
 }

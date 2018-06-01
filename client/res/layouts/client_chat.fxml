@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml">
+            xmlns:fx="http://javafx.com/fxml" >
 
     <top>
         <MenuBar useSystemMenuBar="true">
@@ -37,7 +37,7 @@
                 <Button text="Disconnect"/>
             </right>
             <center>
-                <Label text="Connected to: " />
+                <Label text="Connected to: " fx:id="connectToLabel" />
             </center>
             <left>
                 <BorderPane>

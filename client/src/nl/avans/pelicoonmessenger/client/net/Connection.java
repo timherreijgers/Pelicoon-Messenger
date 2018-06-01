@@ -15,6 +15,7 @@ public class Connection extends Thread {
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
     private MessageReceivedListener listener;
+    private boolean running = true;
 
     public Connection(String ip, User user) {
         try {
@@ -50,20 +51,36 @@ public class Connection extends Thread {
 
     @Override
     public void run() {
-        while(true){
+        while(running){
             try {
                 Object object = inputStream.readObject();
                 System.out.println(object);
+                if(object instanceof Message[])
+                    if(listener != null)
+                        for(int i = 0; i < ((Message[]) object).length; i++)
+                            listener.onMessageReceived((((Message[]) object)[i]));
                 if(object instanceof Message){
                     if(listener != null)
                         listener.onMessageReceived((Message) object);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void stopConnection(){
+        try {
+            running = false;
+            socket.close();
+            interrupt();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public String getIp(){
+        return socket.getInetAddress().getHostName();
     }
 
     public interface MessageReceivedListener{

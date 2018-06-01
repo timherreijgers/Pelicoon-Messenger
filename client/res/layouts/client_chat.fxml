@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml" >
+
+    <top>
+        <MenuBar useSystemMenuBar="true">
+            <Menu text="File">
+                <MenuItem text="Disconnect"/>
+                <MenuItem text="Exit" />
+            </Menu>
+            <Menu text="Help" >
+                <MenuItem text="Copyright" />
+                <MenuItem text="About" />
+            </Menu>
+        </MenuBar>
+    </top>
+    <center>
+        <BorderPane>
+            <center>
+                <TextArea fx:id="mainTextArea" editable="false"/>
+            </center>
+            <bottom>
+                <TextField fx:id="mainMessageArea"/>
+            </bottom>
+        </BorderPane>
+    </center>
+    <left>
+        <TextArea fx:id="clientTextArea" prefWidth="200" editable="false"/>
+    </left>
+    <bottom>
+        <BorderPane>
+            <right>
+                <Button text="Disconnect"/>
+            </right>
+            <center>
+                <Label text="Connected to: " fx:id="connectToLabel" />
+            </center>
+            <left>
+                <BorderPane>
+                    <center>
+                        <Label text="© Tim Herreijgers and Paul Hobbel 2018" alignment="CENTER"/>
+                    </center>
+                </BorderPane>
+            </left>
+        </BorderPane>
+    </bottom>
+
+</BorderPane>

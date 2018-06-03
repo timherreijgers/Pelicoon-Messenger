@@ -4,24 +4,24 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public class Message implements Serializable {
-    private int id;
     private LocalDateTime timestamp;
+    private Lobby lobby;
     private User user;
     private String message;
 
     Message(Builder builder) {
-        id = builder.id;
         timestamp = builder.timestamp;
+        lobby = builder.lobby;
         user = builder.user;
         message = builder.message;
     }
 
-    public int getId() {
-        return id;
-    }
-
     public LocalDateTime getTimestamp() {
         return timestamp;
+    }
+
+    public Lobby getLobby() {
+        return lobby;
     }
 
     public User getUser() {
@@ -35,26 +35,21 @@ public class Message implements Serializable {
     @Override
     public String toString() {
         return "Message{" +
-                "id=" + id +
-                ", timestamp=" + timestamp +
+                "timestamp=" + timestamp +
+                ", lobby=" + lobby +
                 ", user=" + user +
                 ", message='" + message + '\'' +
                 '}';
     }
 
     public static class Builder {
-        int id;
         LocalDateTime timestamp;
+        Lobby lobby;
         User user;
         String message;
 
         public Builder() {
 
-        }
-
-        public Builder id(int id) {
-            this.id = id;
-            return this;
         }
 
         public Builder timestamp(LocalDateTime timestamp) {
@@ -64,6 +59,11 @@ public class Message implements Serializable {
 
         public Builder timestamp() {
             return timestamp(LocalDateTime.now());
+        }
+
+        public Builder lobby(Lobby lobby) {
+            this.lobby = lobby;
+            return this;
         }
 
         public Builder user(User user) {

@@ -2,24 +2,22 @@ package nl.avans.pelicoonmessenger.client.controller;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import nl.avans.pelicoonmessenger.base.models.Message;
-import nl.avans.pelicoonmessenger.base.models.Session;
-import nl.avans.pelicoonmessenger.base.models.User;
 import nl.avans.pelicoonmessenger.client.net.Connection;
+import nl.avans.pelicoonmessenger.client.net.PacketHandler;
 
-import java.io.*;
-import java.net.Socket;
+import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDateTime;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 
-public class ClientChat implements Controller, Initializable, Connection.MessageReceivedListener {
+public class ClientChat implements Controller, Initializable, PacketHandler.MessageReceivedListener {
 
     @FXML
     private TextField mainMessageArea;
@@ -30,37 +28,25 @@ public class ClientChat implements Controller, Initializable, Connection.Message
     @FXML
     private Label connectToLabel;
 
-    private Connection connection;
-    private User user;
+    private Connection connection = Connection.getInstance();
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public ClientChat(String ip, String username) {
+    @FXML
+    private void handleMessageSendEvent(ActionEvent event) {
         try {
-            user = new User.Builder()
-                    .username(username)
-                    .build();
-            connection = new Connection(ip, user);
-            connection.setMessageReceivedListener(this);
-        }catch (Exception e){
+            connection.getHandler().sendMessage(mainMessageArea.getText());
+            mainMessageArea.setText("");
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    @FXML
-    private void handleMessageSendEvent(ActionEvent event) {
-        String message = mainMessageArea.getText();
-        connection.sendMessage(new Message.Builder()
-                .message(message)
-                .timestamp(LocalDateTime.now())
-                .user(user)
-                .build());
-        mainMessageArea.setText("");
-    }
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        mainMessageArea.setOnAction(event -> handleMessageSendEvent(event));
-        connectToLabel.setText("Connected to: " + connection.getIp());
+        connection.getHandler().setMessageReceivedListener(this);
 
+        mainMessageArea.setOnAction(event -> handleMessageSendEvent(event));
+        connectToLabel.setText("Connected to: " + connection.getHostAddress());
     }
 
     @FXML
@@ -70,8 +56,8 @@ public class ClientChat implements Controller, Initializable, Connection.Message
 
     @Override
     public void onMessageReceived(Message message) {
-        System.out.println("Message received!");
-        mainTextArea.appendText(message.getUser().getUsername() + ": " +message.getMessage() + "\n");
+        System.out.println("Message received: " + message);
+        mainTextArea.appendText(message.getTimestamp().format(formatter) + "  " + message.getUser().getUsername() + ": " +message.getMessage() + "\n");
     }
 
     @Override

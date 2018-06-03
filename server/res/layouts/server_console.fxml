@@ -19,7 +19,7 @@
                 <Label text="Clients:" />
             </top>
             <center>
-                <TextArea editable="false" prefWidth="200" />
+                <TextArea fx:id="clients" editable="false" prefWidth="200" />
             </center>
          <padding>
             <Insets bottom="3.0" right="3.0" />
@@ -42,8 +42,11 @@
 
     <bottom>
         <BorderPane>
+            <left>
+                <Label BorderPane.alignment="CENTER">© Tim Herreijgers and Paul Hobbel 2018</Label>
+            </left>
             <right>
-                <Button text="Start" />
+                <Button fx:id="startStopButton" onAction="#handleButtonClick" text="Start" />
             </right>
          <opaqueInsets>
             <Insets />

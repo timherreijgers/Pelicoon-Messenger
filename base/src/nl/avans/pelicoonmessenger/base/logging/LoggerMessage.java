@@ -1,11 +1,11 @@
 package nl.avans.pelicoonmessenger.base.logging;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 class LoggerMessage {
     private Thread thread;
     private Logger.Level level;
-    private Date timestamp;
+    private LocalDateTime timestamp;
     private String prefix;
     private String message;
 
@@ -25,7 +25,7 @@ class LoggerMessage {
         return level;
     }
 
-    public Date getTimestamp() {
+    public LocalDateTime getTimestamp() {
         return timestamp;
     }
 
@@ -40,7 +40,7 @@ class LoggerMessage {
     static class Builder {
         Thread thread;
         Logger.Level level;
-        Date timestamp;
+        LocalDateTime timestamp;
         String prefix;
         String message;
 
@@ -59,10 +59,10 @@ class LoggerMessage {
         }
 
         public Builder timestamp() {
-            return timestamp(new Date());
+            return timestamp(LocalDateTime.now());
         }
 
-        public Builder timestamp(Date timestamp) {
+        public Builder timestamp(LocalDateTime timestamp) {
             this.timestamp = timestamp;
 
             return this;

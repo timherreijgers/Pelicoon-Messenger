@@ -4,8 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.control.TextArea;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-
+import java.time.format.DateTimeFormatter;
 
 public abstract class LoggerAppender {
     private TextArea console;
@@ -15,10 +14,11 @@ public abstract class LoggerAppender {
     }
 
     public void append(LoggerMessage message) {
-        if(this.console == null) return;
+        if(console == null) return;
 
         Platform.runLater(() -> {
-            this.console.appendText(format(message));
+            console.appendText(format(message));
+            console.setScrollTop(Double.MAX_VALUE);
         });
     }
 
@@ -26,7 +26,7 @@ public abstract class LoggerAppender {
 
     public static class BasicLoggerAppender extends LoggerAppender {
 
-        private SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss");
+        private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         public BasicLoggerAppender(TextArea console) {
             super(console);
@@ -34,8 +34,8 @@ public abstract class LoggerAppender {
 
         @Override
         public String format(LoggerMessage message) {
-            return dateFormatter.format(message.getTimestamp())
-                    + " [" + message.getThread().getName() + "/" + message.getLevel() + "] [" + message.getPrefix() + "]: "
+            return "[" + message.getTimestamp().format(formatter)
+                    + "] [" + message.getThread().getName() + "/" + message.getLevel() + "] [" + message.getPrefix() + "]: "
                     + message.getMessage() + "\n";
         }
     }

@@ -1,5 +1,9 @@
 package nl.avans.pelicoonmessenger.base.logging;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+
 public final class Logger {
     private static LoggerAppender appender;
 
@@ -41,5 +45,13 @@ public final class Logger {
 
     public void error(String message) {
         log(Level.ERROR, message);
+    }
+
+    public void printStackTrace(Throwable throwable) {
+        throwable.printStackTrace();
+
+        Writer writer = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(writer));
+        error(writer.toString());
     }
 }

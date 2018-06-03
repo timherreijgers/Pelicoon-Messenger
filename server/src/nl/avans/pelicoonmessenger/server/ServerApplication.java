@@ -34,9 +34,7 @@ public class ServerApplication extends Application {
             event.consume();
         });
 
-        Logger logger = new Logger("ServerApplication");
+        Logger logger = new Logger(getClass().getSimpleName());
         logger.info("Testing logger");
-
-        server.start();
     }
 }

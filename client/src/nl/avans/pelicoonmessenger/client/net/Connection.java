@@ -2,47 +2,47 @@ package nl.avans.pelicoonmessenger.client.net;
 
 import nl.avans.pelicoonmessenger.base.models.Message;
 import nl.avans.pelicoonmessenger.base.models.Session;
-import nl.avans.pelicoonmessenger.base.models.User;
+import nl.avans.pelicoonmessenger.base.net.packets.MessagePacket;
+import nl.avans.pelicoonmessenger.base.net.packets.Packet;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Connection extends Thread {
 
+    private static Connection instance;
+
+    public static Connection getInstance() {
+        if(instance == null) instance = new Connection();
+        return instance;
+    }
+
     private Socket socket;
-    private ObjectOutputStream outputStream;
-    private ObjectInputStream inputStream;
+    ObjectOutputStream outputStream;
+    ObjectInputStream inputStream;
+    private PacketHandler handler;
+
     private MessageReceivedListener listener;
     private boolean running = true;
 
-    public Connection(String ip, User user) {
-        try {
-            socket = new Socket(ip, 1337);
+    Session session;
 
-            outputStream = new ObjectOutputStream(socket.getOutputStream());
-            inputStream = new ObjectInputStream(socket.getInputStream());
+    private List<ConnectionListener> connectionListeners = new ArrayList<>();
 
-            outputStream.writeObject(user);
+    private Connection() { }
 
-            Session session = (Session) inputStream.readObject();
-            System.out.println("Session: " + session.toString());
+    public void connect(String ip, String username) throws IOException {
+        socket = new Socket(ip, 1337);
+        handler = new PacketHandler(this, username);
+        handler.start();
 
-            start();
-        }catch (IOException e){
-            e.printStackTrace();
-        }catch (ClassNotFoundException e){
-            e.printStackTrace();
+        for(ConnectionListener listener : connectionListeners) {
+            listener.onConnected();
         }
-    }
 
-    public void sendMessage(Message message){
-        try {
-            outputStream.writeObject(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        start();
     }
 
     public void setMessageReceivedListener(MessageReceivedListener listener) {
@@ -51,21 +51,41 @@ public class Connection extends Thread {
 
     @Override
     public void run() {
-        while(running){
+        try {
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            inputStream = new ObjectInputStream(socket.getInputStream());
+
             try {
-                Object object = inputStream.readObject();
-                System.out.println(object);
-                if(object instanceof Message[])
-                    if(listener != null)
-                        for(int i = 0; i < ((Message[]) object).length; i++)
-                            listener.onMessageReceived((((Message[]) object)[i]));
-                if(object instanceof Message){
-                    if(listener != null)
-                        listener.onMessageReceived((Message) object);
+                while (running) {
+                    Object packet = inputStream.readObject();
+
+                    if(packet instanceof Packet) {
+                        handler.processPacket((Packet) packet);
+                    }
+
+//                    if (object instanceof Message[])
+//                        if (listener != null)
+//                            for (Message message : (Message[]) object) {
+//                                listener.onMessageReceived(message);
+//                            }
+//                    if (object instanceof Message) {
+//                        if (listener != null)
+//                            listener.onMessageReceived((Message) object);
+//                    }
                 }
-            } catch (Exception e) {
+            } catch (EOFException e) {
                 e.printStackTrace();
+                outputStream.close();
+                inputStream.close();
+                socket.close();
+                running = false;
+
+                for(ConnectionListener listener : connectionListeners) {
+                    listener.onDisconnected();
+                }
             }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
@@ -74,16 +94,34 @@ public class Connection extends Thread {
             running = false;
             socket.close();
             interrupt();
+            handler.interrupt();
         }catch (IOException e){
             e.printStackTrace();
         }
     }
 
-    public String getIp(){
-        return socket.getInetAddress().getHostName();
+    public String getHostAddress(){
+        return socket.getInetAddress().getHostAddress();
+    }
+
+    public PacketHandler getHandler() {
+        return handler;
+    }
+
+    public boolean isAuthenticated() {
+        return session != null;
+    }
+
+    public void addConnectionListener(ConnectionListener listener) {
+        connectionListeners.add(listener);
     }
 
     public interface MessageReceivedListener{
         void onMessageReceived(Message message);
+    }
+
+    public interface ConnectionListener {
+        void onConnected();
+        void onDisconnected();
     }
 }

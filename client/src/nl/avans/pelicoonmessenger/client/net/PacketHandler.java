@@ -28,14 +28,12 @@ public class PacketHandler extends Thread implements IPacketHandler {
         this.listener = listener;
     }
 
-    public void sendMessage(String message) throws IOException {
+    public void sendMessage(String message) {
         queuePacket(new MessagePacket(message));
     }
 
     @Override
-    public void queuePacket(Packet packet) throws IOException {
-        //connection.outputStream.writeObject(packet);
-        //connection.outputStream.flush();
+    public void queuePacket(Packet packet) {
         packetQueue.offer(packet);
     }
 
@@ -46,29 +44,24 @@ public class PacketHandler extends Thread implements IPacketHandler {
 
     @Override
     public void processPacket(Packet packet) {
-        try {
-            // Check if we are already authenticated
-            if (!connection.isAuthenticated()) {
-                if (packet instanceof TokenPacket) {
-                    queuePacket(new AuthenticatePacket(((TokenPacket) packet).getToken(), username));
-                }
-
-                if (packet instanceof SessionPacket) {
-                    connection.session = ((SessionPacket) packet).getSession();
-                }
+        // Check if we are already authenticated
+        if (!connection.isAuthenticated()) {
+            if (packet instanceof TokenPacket) {
+                queuePacket(new AuthenticatePacket(((TokenPacket) packet).getToken(), username));
             }
 
-            if (packet instanceof MessageHistoryPacket) {
-                System.out.println("Received new messages: " + ((MessageHistoryPacket) packet).getHistory());
-                if(listener != null) {
-                    for (Message message : ((MessageHistoryPacket) packet).getHistory()) {
-                        listener.onMessageReceived(message);
-                    }
+            if (packet instanceof SessionPacket) {
+                connection.session = ((SessionPacket) packet).getSession();
+            }
+        }
+
+        if (packet instanceof MessageHistoryPacket) {
+            System.out.println("Received new messages: " + ((MessageHistoryPacket) packet).getHistory());
+            if(listener != null) {
+                for (Message message : ((MessageHistoryPacket) packet).getHistory()) {
+                    listener.onMessageReceived(message);
                 }
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

@@ -1,12 +1,9 @@
 package nl.avans.pelicoonmessenger.server;
 
-import com.sun.javafx.collections.ImmutableObservableList;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import nl.avans.pelicoonmessenger.base.logging.Logger;
 import nl.avans.pelicoonmessenger.base.models.Lobby;
 import nl.avans.pelicoonmessenger.base.models.Message;
+import nl.avans.pelicoonmessenger.base.models.Session;
 import nl.avans.pelicoonmessenger.server.net.ClientConnection;
 import nl.avans.pelicoonmessenger.server.net.PacketHandler;
 
@@ -17,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Server implements ClientConnection.ConnectionListener, PacketHandler.MessageReceivedListener {
+public class Server implements ClientConnection.ConnectionListener, PacketHandler.PacketListener {
 
     private static Server instance;
 
@@ -62,7 +59,7 @@ public class Server implements ClientConnection.ConnectionListener, PacketHandle
 
                 while (running) {
                     ClientConnection client = new ClientConnection(serverSocket.accept(), this);
-                    client.getHandler().addMessageReceivedListener(this);
+                    client.getHandler().addPacketListener(this);
                     client.start();
                     logger.info("New client connected");
                 }
@@ -98,6 +95,10 @@ public class Server implements ClientConnection.ConnectionListener, PacketHandle
         return running;
     }
 
+    public List<ClientConnection> getClients() {
+        return clients;
+    }
+
     public void addEventListener(EventListener listener) {
         listeners.add(listener);
     }
@@ -124,10 +125,19 @@ public class Server implements ClientConnection.ConnectionListener, PacketHandle
     }
 
     @Override
+    public void onAuthenticated(ClientConnection client, Session session) {
+        for(EventListener listener : listeners) {
+            listener.onClientAuthenticated(client);
+        }
+        client.getHandler().sendMessages(messages);
+    }
+
+    @Override
     public void onMessageReceived(Message message) {
         for(ClientConnection client : clients) {
             client.getHandler().sendMessage(message);
         }
+        messages.add(message);
     }
 
 
@@ -136,6 +146,7 @@ public class Server implements ClientConnection.ConnectionListener, PacketHandle
         void onStopped(Server server);
 
         void onClientConnected(ClientConnection client);
+        void onClientAuthenticated(ClientConnection client);
         void onClientDisconnected(ClientConnection client);
     }
 }

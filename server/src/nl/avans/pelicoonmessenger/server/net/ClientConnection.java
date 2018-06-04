@@ -6,6 +6,7 @@ import nl.avans.pelicoonmessenger.base.net.packets.*;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Comparator;
 import java.util.UUID;
 
 public class ClientConnection extends Thread {
@@ -63,6 +64,7 @@ public class ClientConnection extends Thread {
                 out.close();
                 in.close();
                 socket.close();
+                handler.interrupt();
                 listener.onDisconnected(this);
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -99,9 +101,12 @@ public class ClientConnection extends Thread {
         return handler;
     }
 
+    public static Comparator<ClientConnection> compareSessions() {
+        return Comparator.comparing(o -> o.session);
+    }
+
     public interface ConnectionListener {
         void onConnected(ClientConnection client);
-
         void onDisconnected(ClientConnection client);
     }
 }

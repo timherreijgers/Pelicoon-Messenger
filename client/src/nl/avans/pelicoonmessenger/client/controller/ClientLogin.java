@@ -1,5 +1,6 @@
 package nl.avans.pelicoonmessenger.client.controller;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -51,7 +52,7 @@ public class ClientLogin implements Initializable, Controller, Connection.Connec
 
     @Override
     public void onClose() {
-
+        Platform.exit();
     }
 
     @Override

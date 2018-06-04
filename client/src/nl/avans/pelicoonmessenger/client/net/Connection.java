@@ -7,6 +7,7 @@ import nl.avans.pelicoonmessenger.base.net.packets.Packet;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,6 +84,8 @@ public class Connection extends Thread {
                 for(ConnectionListener listener : connectionListeners) {
                     listener.onDisconnected();
                 }
+            } catch (SocketException e) {
+                interrupt();
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -93,8 +96,8 @@ public class Connection extends Thread {
         try {
             running = false;
             socket.close();
-            interrupt();
             handler.interrupt();
+            interrupt();
         }catch (IOException e){
             e.printStackTrace();
         }

@@ -2,7 +2,7 @@ package nl.avans.pelicoonmessenger.base.models;
 
 import java.io.Serializable;
 
-public class Session implements Serializable {
+public class Session implements Serializable, Comparable<Session> {
     private int id;
     private String ip;
     private User user;
@@ -25,6 +25,8 @@ public class Session implements Serializable {
         return user;
     }
 
+
+
     @Override
     public String toString() {
         return "Session{" +
@@ -32,6 +34,11 @@ public class Session implements Serializable {
                 ", ip='" + ip + '\'' +
                 ", user=" + user +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Session o) {
+        return user.compareTo(o.user);
     }
 
     public static class Builder {

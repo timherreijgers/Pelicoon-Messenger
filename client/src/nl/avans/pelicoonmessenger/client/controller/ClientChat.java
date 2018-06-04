@@ -33,19 +33,15 @@ public class ClientChat implements Controller, Initializable, PacketHandler.Mess
 
     @FXML
     private void handleMessageSendEvent(ActionEvent event) {
-        try {
-            connection.getHandler().sendMessage(mainMessageArea.getText());
-            mainMessageArea.setText("");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        connection.getHandler().sendMessage(mainMessageArea.getText());
+        mainMessageArea.setText("");
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         connection.getHandler().setMessageReceivedListener(this);
 
-        mainMessageArea.setOnAction(event -> handleMessageSendEvent(event));
+        mainMessageArea.setOnAction(this::handleMessageSendEvent);
         connectToLabel.setText("Connected to: " + connection.getHostAddress());
     }
 
@@ -56,7 +52,6 @@ public class ClientChat implements Controller, Initializable, PacketHandler.Mess
 
     @Override
     public void onMessageReceived(Message message) {
-        System.out.println("Message received: " + message);
         mainTextArea.appendText(message.getTimestamp().format(formatter) + "  " + message.getUser().getUsername() + ": " +message.getMessage() + "\n");
     }
 
@@ -64,5 +59,8 @@ public class ClientChat implements Controller, Initializable, PacketHandler.Mess
     public void onClose() {
         connection.stopConnection();
         Platform.exit();
+
+        // TODO: Find out why this is not quiting by it's own
+        System.exit(0);
     }
 }

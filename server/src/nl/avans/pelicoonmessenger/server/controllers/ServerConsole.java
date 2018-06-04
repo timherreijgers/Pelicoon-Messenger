@@ -13,6 +13,8 @@ import nl.avans.pelicoonmessenger.server.Server;
 import nl.avans.pelicoonmessenger.server.net.ClientConnection;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class ServerConsole implements Initializable, Server.EventListener {
@@ -43,6 +45,18 @@ public class ServerConsole implements Initializable, Server.EventListener {
         }
     }
 
+    private void generateClientsList() {
+        List<ClientConnection> sortedClients = Server.getInstance().getClients();
+        sortedClients.sort(ClientConnection.compareSessions());
+
+        StringBuilder builder = new StringBuilder();
+        for(ClientConnection client : sortedClients) {
+            builder.append(client.getAuthenticatedSession().getUser().getUsername()).append("\n");
+        }
+
+        clients.setText(builder.toString());
+    }
+
     @Override
     public void onStarted(Server server) {
         Platform.runLater(() -> startStopButton.setText("Stop"));
@@ -55,11 +69,17 @@ public class ServerConsole implements Initializable, Server.EventListener {
 
     @Override
     public void onClientConnected(ClientConnection client) {
-        clients.appendText("Test");
+        //clients.appendText("Test");
+    }
+
+    @Override
+    public void onClientAuthenticated(ClientConnection client) {
+        //clients.appendText(client.getAuthenticatedSession().getUser().getUsername());
+        generateClientsList();
     }
 
     @Override
     public void onClientDisconnected(ClientConnection client) {
-
+        generateClientsList();
     }
 }

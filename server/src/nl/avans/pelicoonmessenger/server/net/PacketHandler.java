@@ -20,7 +20,7 @@ public class PacketHandler extends Thread implements IPacketHandler {
     private ClientConnection client;
 
     private Queue<Packet> packetQueue = new LinkedList<>();
-    private List<MessageReceivedListener> listeners = new ArrayList<>();
+    private List<PacketListener> listeners = new ArrayList<>();
 
     public PacketHandler(ClientConnection client) {
         this.client = client;
@@ -68,7 +68,12 @@ public class PacketHandler extends Thread implements IPacketHandler {
             logger.info("Welcoming " + user.getUsername() + " by sending the session");
 
             queuePacket(new SessionPacket(session));
+
             client.session = session;
+
+            for(PacketListener listener : listeners) {
+                listener.onAuthenticated(client, session);
+            }
         }
 
         if (packet instanceof MessagePacket) {
@@ -78,13 +83,13 @@ public class PacketHandler extends Thread implements IPacketHandler {
                     .timestamp()
                     .build();
 
-            for(MessageReceivedListener listener : listeners) {
+            for(PacketListener listener : listeners) {
                 listener.onMessageReceived(message);
             }
         }
     }
 
-    public void addMessageReceivedListener(MessageReceivedListener listener) {
+    public void addPacketListener(PacketListener listener) {
         listeners.add(listener);
     }
 
@@ -106,7 +111,8 @@ public class PacketHandler extends Thread implements IPacketHandler {
         }
     }
 
-    public interface MessageReceivedListener {
+    public interface PacketListener {
+        void onAuthenticated(ClientConnection client, Session session);
         void onMessageReceived(Message message);
     }
 }

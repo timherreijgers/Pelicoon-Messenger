@@ -2,7 +2,7 @@ package nl.avans.pelicoonmessenger.base.models;
 
 import java.io.Serializable;
 
-public class User implements Serializable {
+public class User implements Serializable, Comparable<User> {
     private int id;
     private String username;
 
@@ -25,6 +25,11 @@ public class User implements Serializable {
                 "id=" + id +
                 ", username='" + username + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(User o) {
+        return username.compareTo(o.username);
     }
 
     public static class Builder {

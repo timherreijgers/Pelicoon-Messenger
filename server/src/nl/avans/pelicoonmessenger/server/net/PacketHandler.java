@@ -77,14 +77,16 @@ public class PacketHandler extends Thread implements IPacketHandler {
         }
 
         if (packet instanceof MessagePacket) {
-            Message message = new Message.Builder()
-                    .user(client.getAuthenticatedSession().getUser())
-                    .message(((MessagePacket) packet).getMessage())
-                    .timestamp()
-                    .build();
+            if(((MessagePacket) packet).getMessage() != null && ((MessagePacket) packet).getMessage() != "") {
+                Message message = new Message.Builder()
+                        .user(client.getAuthenticatedSession().getUser())
+                        .message(((MessagePacket) packet).getMessage())
+                        .timestamp()
+                        .build();
 
-            for(PacketListener listener : listeners) {
-                listener.onMessageReceived(message);
+                for (PacketListener listener : listeners) {
+                    listener.onMessageReceived(message);
+                }
             }
         }
     }
